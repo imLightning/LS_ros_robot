@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页</title>
+    <style>
+        /* 全局样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            /* 浅蓝色背景 */
+            position: relative;
+            height: 100vh;
+        }
+
+        /* 大标题样式 */
+        h1 {
+            font-size: 48px;
+            color: #007bff;
+            /* 蓝色 */
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 按钮容器 */
+        .button-grid {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            /* 3列，每列宽度100px */
+            gap: 20px;
+            /* 按钮间距 */
+        }
+
+        /* 按钮样式 */
+        .app-button {
+            width: 80px;
+            height: 80px;
+            background-color: #ffffff;
+            /* 白色 */
+            border-radius: 10px;
+            /* 圆角 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: #007bff;
+            /* 蓝色 */
+        }
+
+        /* 按钮悬停效果 */
+        .app-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 按钮文字 */
+        .app-button span {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        /* 按钮图标 */
+        .bi {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 按钮网格 -->
+    <div class="button-grid">
+        <!-- 遥控 -->
+        <a href="/ROV" class="app-button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-dpad-fill" viewBox="0 0 16 16">
+                <path
+                    d="M6.5 0A1.5 1.5 0 0 0 5 1.5v3a.5.5 0 0 1-.5.5h-3A1.5 1.5 0 0 0 0 6.5v3A1.5 1.5 0 0 0 1.5 11h3a.5.5 0 0 1 .5.5v3A1.5 1.5 0 0 0 6.5 16h3a1.5 1.5 0 0 0 1.5-1.5v-3a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 0 16 9.5v-3A1.5 1.5 0 0 0 14.5 5h-3a.5.5 0 0 1-.5-.5v-3A1.5 1.5 0 0 0 9.5 0h-3Zm1.288 2.34a.25.25 0 0 1 .424 0l.799 1.278A.25.25 0 0 1 8.799 4H7.201a.25.25 0 0 1-.212-.382l.799-1.279Zm0 11.32-.799-1.277A.25.25 0 0 1 7.201 12H8.8a.25.25 0 0 1 .212.383l-.799 1.278a.25.25 0 0 1-.424 0Zm-4.17-4.65-1.279-.798a.25.25 0 0 1 0-.424l1.279-.799A.25.25 0 0 1 4 7.201V8.8a.25.25 0 0 1-.382.212Zm10.043-.798-1.278.799A.25.25 0 0 1 12 8.799V7.2a.25.25 0 0 1 .383-.212l1.278.799a.25.25 0 0 1 0 .424Z" />
+            </svg>
+            <span>遥控</span>
+        </a>
+        <!-- 语音 -->
+        <a href="/ASR" class="app-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-mic-fill"
+                viewBox="0 0 16 16">
+                <path d="M5 3a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0V3z" />
+                <path
+                    d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z" />
+            </svg>
+            <span>语音</span>
+        </a>
+        <!-- 相机 -->
+        <a href="/CAM" class="app-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera2"
+                viewBox="0 0 16 16">
+                <path d="M5 8c0-1.657 2.343-3 4-3V4a4 4 0 0 0-4 4z" />
+                <path
+                    d="M12.318 3h2.015C15.253 3 16 3.746 16 4.667v6.666c0 .92-.746 1.667-1.667 1.667h-2.015A5.97 5.97 0 0 1 9 14a5.972 5.972 0 0 1-3.318-1H1.667C.747 13 0 12.254 0 11.333V4.667C0 3.747.746 3 1.667 3H2a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1h.682A5.97 5.97 0 0 1 9 2c1.227 0 2.367.368 3.318 1zM2 4.5a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0zM14 8A5 5 0 1 0 4 8a5 5 0 0 0 10 0z" />
+            </svg>
+            <span>相机</span>
+        </a>
+        <!-- 设置 -->
+        <a href="#" class="app-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-fill"
+                viewBox="0 0 16 16">
+                <path
+                    d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+            </svg>
+            <span>设置</span>
+        </a>
+    </div>
+</body>
+
+</html>

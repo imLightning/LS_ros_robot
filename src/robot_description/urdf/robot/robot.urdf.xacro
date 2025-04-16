@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
+    
+<xacro:include filename="$(find robot_description)/urdf/robot/base.urdf.xacro"/>
+<xacro:include filename="$(find robot_description)/urdf/robot/sensor/laser.urdf.xacro"/>
+<xacro:include filename="$(find robot_description)/urdf/robot/actuator/wheel.urdf.xacro"/>
+<xacro:include filename="$(find robot_description)/urdf/robot/actuator/caster.urdf.xacro"/>
+
+<!-- 车身 -->
+<xacro:base_xacro radius="0.099" length="0.05"/>
+
+<!-- 雷达 -->
+<xacro:laser_xacro length="0.02" radius="0.02" xyz="-0.0375 0.0 0.025" />
+
+<!-- 车轮 -->
+<xacro:caster_xacro caster_name="frt_caster" radius="0.03" xyz="-0.069 0.0 -0.045" />
+<xacro:caster_xacro caster_name="bak_caster" radius="0.03" xyz="0.069 0.0 -0.045" />
+<xacro:wheel_xacro wheel_name="left_wheel" length="0.03" radius="0.0375" xyz="0.00 0.084 -0.0375" />
+<xacro:wheel_xacro wheel_name="right_wheel" length="0.03" radius="0.0375" xyz="0.00 -0.084 -0.0375" />
+</robot>

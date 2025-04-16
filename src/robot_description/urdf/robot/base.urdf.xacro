@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    
+    <!-- <xacro:include filename="$(find dogbot_description)/urdf/dogbot/common_inertia.xacro"/> -->
+    <!-- location -->
+    <link name="base_footprint" />
+    
+    <xacro:macro name="base_xacro" params="radius length">
+        <!-- Body -->
+        <link name="base_link">
+            <!-- Description of apperance -->
+            <visual>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <geometry>
+                    <cylinder radius="${radius}" length="${length}"/>
+                </geometry>
+                <material name="white">
+                    <color rgba="1.0 1.0 1.0 0.5"/>
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <geometry>
+                    <cylinder radius="${radius}" length="${length / 2.0}"/>
+                </geometry>
+                <material name="white">
+                    <color rgba="1.0 1.0 1.0 0.5"/>
+                </material>
+            </collision>
+
+            <!-- <xacro:box_inertia m="1.0" w="0.2" d="0.1" h="0.2" /> -->
+        </link>
+
+        <joint name="base_joint" type="fixed">
+            <origin xyz="0.0 0.0 0.0745" rpy="0.0 0.0 0.0"/>
+            <parent link="base_footprint"/>
+            <child link="base_link"/>
+        </joint>
+
+        <!-- <gazebo reference="base_link">
+            <material>
+                Gazebo/Red
+            </material>
+        </gazebo> -->
+    </xacro:macro>
+</robot>

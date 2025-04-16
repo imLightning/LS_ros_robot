@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遥控</title>
+    <style>
+        /* 设置全局样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 按钮容器使用 Grid 布局 */
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            width: 90%;
+            max-width: 300px;
+        }
+
+        /* 按钮样式 */
+        .button-container button {
+            padding: 20px;
+            font-size: 36px;
+            border: none;
+            border-radius: 10px;
+            background-color: #4c6bafad;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            aspect-ratio: 1;
+        }
+
+        .button-container button:hover {
+            background-color: #4c6baf;
+            color: rgba(0, 0, 0, 0.481);
+        }
+
+        /* 特定按钮位置 */
+        .button-container button:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .button-container button:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .button-container button:nth-child(3) {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .button-container button:nth-child(4) {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .button-container button:nth-child(5) {
+            grid-column: 1;
+            grid-row: 3;
+        }
+
+        .button-container button:nth-child(6) {
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        .button-container button:nth-child(7) {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .button-container button:nth-child(8) {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .button-container button:nth-child(9) {
+            grid-column: 2;
+            grid-row: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <button onclick="sendNumber(2)">↑</button>
+        <button onclick="sendNumber(1)">↖</button>
+        <button onclick="sendNumber(3)">↗</button>
+        <button onclick="sendNumber(8)">↓</button>
+        <button onclick="sendNumber(7)">↙</button>
+        <button onclick="sendNumber(9)">↘</button>
+        <button onclick="sendNumber(4)">←</button>
+        <button onclick="sendNumber(6)">→</button>
+        <button onclick="sendNumber(5)">○</button>
+    </div>
+
+    <script>
+        // 发送数字到后端
+        function sendNumber(num) {
+            fetch('/move_control', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ number: num }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

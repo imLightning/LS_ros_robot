@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>语音输入</title>
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .record-btn {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .record-btn:active {
+            transform: scale(0.95);
+        }
+
+        .record-btn.recording {
+            background-color: #dc3545;
+            /* 录音时变为红色 */
+        }
+
+        .record-btn .icon {
+            transition: opacity 0.3s ease;
+        }
+
+        .record-btn .icon.microphone {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%) scale(2.5);
+            opacity: 1;
+        }
+
+        .record-btn .icon.stop {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%) scale(2.5);
+            opacity: 0;
+        }
+
+        .record-btn.recording .icon.microphone {
+            opacity: 0;
+        }
+
+        .record-btn.recording .icon.stop {
+            opacity: 1;
+        }
+
+        .loading {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            opacity: 0.5;
+            z-index: 6;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translateX(-50%) translateY(-50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translateX(-50%) translateY(-50%) rotate(360deg);
+            }
+        }
+
+        .bi {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            color: white;
+            animation-name: spin;
+            animation-duration: 1s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        .loading.finish {
+            display: none;
+        }
+
+        .toptip {
+            position: absolute;
+            top: 5%;
+            width: 80vw;
+            margin: 10px;
+            padding: 10px;
+            height: auto;
+            background-color: #ffffff;
+            /* 白色 */
+            border-radius: 10px;
+            /* 圆角 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #007bff;
+            /* 蓝色 */
+            letter-spacing: 2px;
+        }
+
+        .toptip.hide {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toptip hide">
+
+    </div>
+    <div class="loading finish">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+            <path
+                d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+            <path fill-rule="evenodd"
+                d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+        </svg>
+    </div>
+    <div class="app">
+        <button class="record-btn">
+            <i class="icon microphone fas fa-microphone"></i>
+            <i class="icon stop fas fa-stop"></i>
+        </button>
+    </div>
+    <script>
+        const recordBtn = document.querySelector(".record-btn");
+        const loadingDiv = document.querySelector(".loading");
+        const topTip = document.querySelector(".toptip");
+        // const player = document.querySelector(".audio-player");
+
+        if (navigator.mediaDevices.getUserMedia) {
+            var chunks = [];
+            const constraints = { audio: true };
+            navigator.mediaDevices.getUserMedia(constraints).then(
+                stream => {
+                    console.log("授权成功！");
+
+                    const mediaRecorder = new MediaRecorder(stream);
+
+                    recordBtn.onclick = () => {
+                        if (mediaRecorder.state === "recording") {
+                            mediaRecorder.stop();
+                            recordBtn.classList.remove("recording");
+                            console.log("录音结束");
+                        } else {
+                            mediaRecorder.start();
+                            console.log("录音中...");
+                            recordBtn.classList.add("recording");
+                        }
+                        console.log("录音器状态：", mediaRecorder.state);
+                    };
+
+                    mediaRecorder.ondataavailable = e => {
+                        chunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = e => {
+                        // 音频流
+                        var blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
+                        chunks = [];
+                        const formData = new FormData();
+                        formData.append('file', blob, 'speech.wav');
+                        loadingDiv.classList.remove("finish");
+
+                        fetch('/upload_speech', {
+                            method: 'POST',
+                            body: formData,
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                setTimeout(() => {
+                                    loadingDiv.classList.add("finish");
+                                    console.log('后端响应:', data);
+                                    topTip.innerText = data.text;
+                                    topTip.classList.remove("hide");
+                                    setTimeout(() => {
+                                        topTip.classList.add("hide");
+                                        topTip.innerText = "";
+                                    }, 5000)
+                                }, 2000);
+                            })
+                            .catch(error => {
+                                setTimeout(() => {
+                                    loadingDiv.classList.add("finish");
+                                    console.error('发送到后端时出错:', error);
+                                    topTip.innerText = "请稍后重试";
+                                    topTip.classList.remove("hide");
+                                    setTimeout(() => {
+                                        topTip.classList.add("hide");
+                                        topTip.innerText = "";
+                                    }, 5000)
+                                }, 2000);
+                            });
+
+                        // var audioURL = window.URL.createObjectURL(blob);
+                        // player.src = audioURL;
+                    };
+                },
+                () => {
+                    console.error("授权失败！");
+                }
+            );
+        } else {
+            console.error("浏览器不支持 getUserMedia");
+        }
+    </script>
+</body>
+
+</html>
