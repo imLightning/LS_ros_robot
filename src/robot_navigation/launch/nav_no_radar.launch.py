@@ -17,17 +17,25 @@ def generate_launch_description():
     
     # 创建 Launch 配置
     map_yaml_path = launch.substitutions.LaunchConfiguration(
-        'map', default=os.path.join(robot_navigation2_dir, 'maps', 'room201.yaml'))
+        'map', default=os.path.join(robot_navigation2_dir, 'maps', 'room3.yaml'))
     nav2_param_path = launch.substitutions.LaunchConfiguration(
-        'params_file', default=os.path.join(robot_navigation2_dir, 'config', 'nav2_params2.yaml'))
+        'params_file', default=os.path.join(robot_navigation2_dir, 'config', 'nav2_params3.yaml'))
     tf2_node = launch_ros.actions.Node(
         package='tf2_ros',
         executable='static_transform_publisher',
         name='manual_tf_pub_map',
         arguments=['0', '0', '0.02','0', '0', '0', '1','base_link','map'],
     )
+    tf2_amcl = launch_ros.actions.Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='manual_tf_pub_amcl',
+        output='screen',
+        arguments=['0', '0', '0','0', '0', '0', '1','map','odom'],
+    )
     return launch.LaunchDescription([
-        tf2_node,
+        # tf2_node,
+        tf2_amcl,
         launch_ros.actions.Node(
             package='rviz2',
             executable='rviz2',

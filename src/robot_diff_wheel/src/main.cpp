@@ -45,9 +45,7 @@ public:
         // 获取底盘信息
         Receive_ChassisData(&leftMotorSpeed, &rightMotorSpeed, &yaw, &control);
 
-        // RCLCPP_INFO(this->get_logger(), "Speed, left:%lf, right:%lf, yaw:%lf, control:%#X",
-        //             leftMotorSpeed, rightMotorSpeed, yaw, control);
-        // RCLCPP_INFO(this->get_logger(), "left:%lf, right:%lf, yaw:%lf", leftMotorSpeed, rightMotorSpeed, yaw);
+        RCLCPP_INFO(this->get_logger(), "L:%.2lf R:%.2lf Y:%.2lf", leftMotorSpeed /1000.0, rightMotorSpeed /1000.0, yaw);
 
         linerSpeed = (leftMotorSpeed + rightMotorSpeed) / 2 / 1000;
         angularSpeed = (yaw - last_yaw) * (M_PI / 180.0) / LOOPPERIOD;
@@ -107,14 +105,13 @@ public:
     // 订阅者回调函数
     void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg) const
     {
-        RCLCPP_INFO(this->get_logger(), "L:%lf R:%lf Y%lf", leftMotorSpeed, rightMotorSpeed, yaw);
         double linear_vel_x = (msg->linear.x) * 1000,
                angular_vel_th = (msg->angular.z) * 100,
                rightTargetSpeed = 0.0,
                leftTargetSpeed = 0.0;
         rightTargetSpeed = (linear_vel_x + angular_vel_th * 9.5);
         leftTargetSpeed = (linear_vel_x - angular_vel_th * 9.5);
-        RCLCPP_INFO(this->get_logger(), "Target:%lf %lf\n", leftTargetSpeed, rightTargetSpeed);
+        RCLCPP_INFO(this->get_logger(), "\nTarget:%.2lf %.2lf (m/s)\n\n", leftTargetSpeed /10.0, rightTargetSpeed /10.0);
         unsigned char targetControl = 0b00000000;
         if(leftTargetSpeed > 0.0) {
             targetControl += 0b00000100;
@@ -126,7 +123,7 @@ public:
         } else if(rightTargetSpeed < 0.0) {
             targetControl += 0b00000010;
         }
-        // RCLCPP_INFO(this->get_logger(), "TargetSend: %lf, %lf, %#X", leftTargetSpeed, rightTargetSpeed, targetControl);
+        // RCLCPP_INFO(this->get_logger(), "TargetSend: %.2lf, %.2lf, %#X", leftTargetSpeed / 10.0, rightTargetSpeed / 10.0, targetControl);
         Send_ChassisData(leftTargetSpeed, rightTargetSpeed, targetControl);
     }
 

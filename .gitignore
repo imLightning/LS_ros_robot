@@ -5,3 +5,6 @@ log
 cap_%d
 tvnc.sh
 src/robot_vue3/
+diff.sh
+set.sh
+nav.sh

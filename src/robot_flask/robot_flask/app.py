@@ -13,9 +13,13 @@ import cv2
 from cv_bridge import CvBridge
 import whisper
 import requests
+import nav2_inter
+import ollama_lib
+from nav2_simple_commander.robot_navigator import BasicNavigator
 
-RASP_HOST = '192.168.98.109'
+RASP_HOST = '192.168.68.109'
 RASP_PORT = '5000'
+ollma_url = "http://192.168.68.152:11434/api/generate"
 
 # 移动消息数组
 movement = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -29,9 +33,7 @@ FREQUENCY = 40
 camera_frame = ''
 
 # 语音识别模型
-model = whisper.load_model("base")
-
-ollma_url = "http://192.168.98.152:11434/api/generate"
+model = whisper.load_model("tiny")
 
 app = Flask(__name__, template_folder='/home/ros_system/ros_workspace/src/robot_flask/views')
 
@@ -133,6 +135,23 @@ def movStop(data):
     movement[5] = 0.0
     return
 
+# 导航到点
+def nav2pose(data):
+    if data == 'A': 
+        pose = {
+            "x": 1.5,
+            "y": 0.0,
+            "w": 1.0
+        }
+    else: 
+        return 0
+    rclpy.init()
+    navigator = BasicNavigator()
+    # 等待导航启动完成
+    navigator.waitUntilNav2Active()
+    nav2_inter.navToPoseOnce(navigator, pose, overtime=600.0)
+    return 1
+
 # 移动控制话题发布结点
 class MoveControlPublisher(Node):
 
@@ -207,223 +226,8 @@ def speechRecognizer(src):
     r = requests.post(url=ollma_url, json={
         "model": "wangshenzhi/llama3-8b-chinese-chat-ollama-q4",
         "prompt": result["text"],
-        "context": [
-            198,
-            128006,
-            9125,
-            128007,
-            271,
-            198,
-            2675,
-            527,
-            264,
-            11190,
-            18328,
-            13,
-            198,
-            128009,
-            128006,
-            882,
-            128007,
-            198,
-            198,
-            30177,
-            113931,
-            15225,
-            57668,
-            60979,
-            105318,
-            18904,
-            59464,
-            37046,
-            1811,
-            105318,
-            121589,
-            5232,
-            37046,
-            38093,
-            70141,
-            57668,
-            73117,
-            1,
-            25580,
-            42399,
-            20,
-            73361,
-            1,
-            5486,
-            1,
-            34547,
-            56906,
-            18,
-            73361,
-            1,
-            5486,
-            1,
-            122434,
-            1,
-            50667,
-            22238,
-            127448,
-            65305,
-            3922,
-            57668,
-            86206,
-            46281,
-            25580,
-            42399,
-            1,
-            3427,
-            43887,
-            1,
-            5486,
-            34547,
-            56906,
-            1,
-            70,
-            677,
-            474,
-            1,
-            5486,
-            78659,
-            47770,
-            1,
-            413,
-            2414,
-            1,
-            5486,
-            65917,
-            47770,
-            1,
-            413,
-            1315,
-            1,
-            5486,
-            122434,
-            1,
-            9684,
-            1,
-            76208,
-            19483,
-            33904,
-            16325,
-            51504,
-            48044,
-            113925,
-            37046,
-            1811,
-            78657,
-            3922,
-            37046,
-            73117,
-            1,
-            25580,
-            42399,
-            16,
-            73361,
-            1,
-            3922,
-            57668,
-            18904,
-            59464,
-            1,
-            5018,
-            1337,
-            3332,
-            3427,
-            43887,
-            2247,
-            695,
-            794,
-            16,
-            10064,
-            5486,
-            1,
-            78659,
-            47770,
-            966,
-            27479,
-            1,
-            3922,
-            1,
-            5018,
-            1337,
-            3332,
-            413,
-            2414,
-            2247,
-            695,
-            794,
-            966,
-            10064,
-            5486,
-            1,
-            95475,
-            113931,
-            1,
-            3922,
-            1,
-            5018,
-            1337,
-            3332,
-            9684,
-            2247,
-            695,
-            794,
-            15,
-            10064,
-            1811,
-            15225,
-            61633,
-            3922,
-            113473,
-            18904,
-            59464,
-            109545,
-            43292,
-            126189,
-            9554,
-            39404,
-            18476,
-            3922,
-            57106,
-            30624,
-            72234,
-            23039,
-            39404,
-            6447,
-            15225,
-            61633,
-            3922,
-            16325,
-            106885,
-            18476,
-            48915,
-            113473,
-            111935,
-            109545,
-            119292,
-            6447,
-            1811,
-            128009,
-            128006,
-            78191,
-            128007,
-            198,
-            198,
-            110085,
-            3922,
-            37046,
-            120222,
-            35287,
-            1811,
-            15225,
-            73117,
-            110310,
-            64467,
-            103507,
-            1811
-        ],
+        # "prompt": "前进到点A",
+        "context": ollama_lib.CONTEXT_ONLY_NAV,
         "stream": False
     }, timeout=30)
     response = json.loads(r.json()["response"])
@@ -438,6 +242,8 @@ def speechRecognizer(src):
         movTurnright(response["data"])
     elif response["type"] == "stop":
         movStop(response["data"])
+    elif response["type"] == "navToPose":
+        nav2pose(response["data"])
     return response
 
 # 语音上传
@@ -464,8 +270,8 @@ def upload_speech():
     return jsonify({"text": recognized_text})
 
 def main(args=None):
-    move_node = threading.Thread(target=nodeBuilder, args=(MoveControlPublisher,))
-    move_node.start()
+    # move_node = threading.Thread(target=nodeBuilder, args=(MoveControlPublisher,))
+    # move_node.start()
     # camera_node = threading.Thread(target=nodeBuilder, args=(CameraImagePublisher,))
     # camera_node.start()
     app.run(host=RASP_HOST, port=RASP_PORT)
