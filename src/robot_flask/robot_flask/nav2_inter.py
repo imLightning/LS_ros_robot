@@ -15,6 +15,7 @@ def navToPoseOnce(navigator, pose, overtime):
     goal_pose.pose.orientation.w = pose["w"] * 1.0
     # 发送目标接收反馈结果
     navigator.goToPose(goal_pose)
+    print("### 开始导航 ###")
     while not navigator.isTaskComplete():
         feedback = navigator.getFeedback()
         navigator.get_logger().info(

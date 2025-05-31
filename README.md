@@ -9,11 +9,15 @@
     │   │   ├──src
     │   │   │   ├──main.c // 主程序
     │   │   │   ├──message.c // 通信
-    │   ├──robot_flask // 网页端
+    │   ├──robot_flask // 网页端、
+    │   │   ├──models // 模型
+    │   │   ├──views // 网页
     │   │   ├──robot_flask
-    │   │   │   ├──app.py // 主程序
+    │   │   │   ├──app.py // 服务器程序
+    │   │   │   ├──voice_control.py // 语音程序
     │   ├──robot_navigation // 导航
     │   ├──robot_ydlidar_x2 // 雷达驱动
+    │   ├──robot_jps_planner // JPS算法
 
 # 常用指令
     Edge浏览器限制了局域网的权限
@@ -30,4 +34,5 @@
         ros2 launch robot_description motor.launch.py
         ros2 run teleop_twist_keyboard teleop_twist_keyboard 
         ros2 launch robot_description radar_motor.launch.py
-        ros2 launch robot_navigation navigation_display.launch.py
+        ros2 launch robot_navigation test.launch.py
+        /bin/python3 /home/ros_system/ros_workspace/src/robot_flask/robot_flask/voice_control.py

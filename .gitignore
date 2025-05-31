@@ -5,6 +5,8 @@ log
 cap_%d
 tvnc.sh
 src/robot_vue3/
+src/robot_flask/models
 diff.sh
 set.sh
 nav.sh
+speech_t.wav

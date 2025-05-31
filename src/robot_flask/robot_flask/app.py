@@ -16,10 +16,18 @@ import requests
 import nav2_inter
 import ollama_lib
 from nav2_simple_commander.robot_navigator import BasicNavigator
+import pyaudio
+from vosk import Model, KaldiRecognizer
+from fuzzywuzzy import fuzz, process
+from playsound import playsound
 
-RASP_HOST = '192.168.68.109'
+RASP_HOST = '192.168.240.109'
 RASP_PORT = '5000'
-ollma_url = "http://192.168.68.152:11434/api/generate"
+ollma_url = ollama_lib.OLLAMA_URL + "/api/generate"
+vosk_model_path = "/home/ros_system/ros_workspace/src/robot_flask/models/vosk-model-small-cn-0.22"
+wake_word = "机器人"
+stream_sample_rate = 48000
+stream_chunk_size = 1024
 
 # 移动消息数组
 movement = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -34,6 +42,30 @@ camera_frame = ''
 
 # 语音识别模型
 model = whisper.load_model("tiny")
+
+# # vosk语音模型
+# vosk_model = Model(vosk_model_path)
+# vosk_rec = KaldiRecognizer(vosk_model, stream_sample_rate)
+
+# # 初始化 PyAudio
+# p = pyaudio.PyAudio()
+# stream = p.open(format=pyaudio.paInt16,
+#                 channels=1,
+#                 rate=stream_sample_rate,
+#                 input=True,
+#                 frames_per_buffer=stream_chunk_size)
+
+# 模糊匹配
+def fuzzy_match(target, choices):
+    best_match = process.extractOne(target, choices)
+    return best_match
+
+# 匹配序列
+choices_list = [
+    "前往A点", 
+    "前往B点", 
+    "前往C点"
+    ]
 
 app = Flask(__name__, template_folder='/home/ros_system/ros_workspace/src/robot_flask/views')
 
@@ -137,10 +169,17 @@ def movStop(data):
 
 # 导航到点
 def nav2pose(data):
-    if data == 'A': 
+    pose = ''
+    if data == '1': 
         pose = {
-            "x": 1.5,
+            "x": 3.0,
             "y": 0.0,
+            "w": 1.0
+        }
+    elif data == '2': 
+        pose = {
+            "x": -1.0,
+            "y": 3.0,
             "w": 1.0
         }
     else: 
@@ -220,30 +259,66 @@ def cam_view():
 def asr_view():
     return render_template('voice.html')
 
+def selectFunction(response):
+    rt = response["type"]
+    rd = response["data"]
+
+    print(rt + "(" + str(rd) + ")")
+
+    if rt == "goahead":
+        movGoahead(rd)
+    elif rt == "goback":
+        movGoback(rd)
+    elif rt == "turnleft":
+        movTurnleft(rd)
+    elif rt == "turnright":
+        movTurnright(rd)
+    elif rt == "stop":
+        movStop(rd)
+    elif rt == "navToPose":
+        nav2pose(rd)
+    elif rt == "feedback":
+        print("检测到非法指令，请重试！")
+    return 0
+
 # 语音识别函数
 def speechRecognizer(src):
-    result = model.transcribe(audio=src, fp16=False, verbose=True, initial_prompt="以下是普通话的句子，含有数字", language="zh")
+    result = model.transcribe(audio=src, fp16=False, verbose=False, initial_prompt="含有中文，可能包含字母或数字", language="zh")
+
+    print(result["text"])
+    print("### 开始指令识别 ###")
+
     r = requests.post(url=ollma_url, json={
-        "model": "wangshenzhi/llama3-8b-chinese-chat-ollama-q4",
+        "model": ollama_lib.OLLAMA_MODEL,
         "prompt": result["text"],
         # "prompt": "前进到点A",
-        "context": ollama_lib.CONTEXT_ONLY_NAV,
+        "context": ollama_lib.CONTEXT_ALL_THE_THING,
         "stream": False
-    }, timeout=30)
+    }, timeout=90)
     response = json.loads(r.json()["response"])
+
     print(response)
-    if response["type"] == "goahead":
-        movGoahead(response["data"])
-    elif response["type"] == "goback":
-        movGoback(response["data"])
-    elif response["type"] == "turnleft":
-        movTurnleft(response["data"])
-    elif response["type"] == "turnright":
-        movTurnright(response["data"])
-    elif response["type"] == "stop":
-        movStop(response["data"])
-    elif response["type"] == "navToPose":
-        nav2pose(response["data"])
+
+    for resp in response:
+        selectFunction(resp)
+    return response
+
+# 文本上传
+def postOllama(text):
+    print("开始解析")
+    r = requests.post(url=ollma_url, json={
+        "model": ollama_lib.OLLAMA_MODEL,
+        "prompt": text,
+        # "prompt": "前进到点A",
+        "context": ollama_lib.CONTEXT_ALL_THE_THING,
+        "stream": False
+    }, timeout=90)
+    response = json.loads(r.json()["response"])
+
+    print(response)
+
+    for resp in response:
+        selectFunction(resp)
     return response
 
 # 语音上传
@@ -259,6 +334,8 @@ def upload_speech():
     # 保存上传的文件
     file_path = "speech_t.wav"
     file.save(file_path)
+    
+    print("### 开始语音识别 ###")
 
     # 进行语音识别
     recognized_text = speechRecognizer(file_path)
@@ -269,11 +346,72 @@ def upload_speech():
     # 返回识别结果
     return jsonify({"text": recognized_text})
 
+# 实时语音识别
+def voskWeak():
+    global stream, vosk_rec
+    while True:
+        data = stream.read(stream_chunk_size)
+        if len(data) == 0:
+            break
+        if vosk_rec.AcceptWaveform(data):
+            result = vosk_rec.Result()
+            text = eval(result)["text"]
+            # print(text)
+            if wake_word in text:
+                print("唤醒词已检测到！")
+                playsound("/home/ros_system/ros_workspace/src/robot_flask/resources/imhere.mp3")
+                print("开始录音")
+                full_text = []
+                last_voice_time = time.time()
+                
+                while True:
+                    data = stream.read(stream_chunk_size)
+                    
+                    # 检测是否有语音输入
+                    audio_data = np.frombuffer(data, dtype=np.int16)
+                    current_rms = np.max(audio_data)
+                    silence_threshold = 1500  # 静音阈值，根据实际情况调整
+                    # print(current_rms)
+                    if current_rms > silence_threshold:
+                        last_voice_time = time.time()
+                        if vosk_rec.AcceptWaveform(data):
+                            partial_result = eval(vosk_rec.Result())["text"]
+                            # if partial_result:
+                            #     print(f"识别中: {partial_result}", end='\r')
+                    else:
+                        # 超过2秒静音则结束录音
+                        if time.time() - last_voice_time > 2:
+                            break
+                
+                # 获取最终识别结果
+                final_result = eval(vosk_rec.FinalResult())["text"].replace('我 在', '')
+                final_result = "  请  前 往  第 一 站 "
+                if final_result:
+                    playsound("/home/ros_system/ros_workspace/src/robot_flask/resources/yesir.mp3")
+                    print(f"\n语音识别结果: {final_result}")
+                    postOllama(final_result)
+                    # #模糊匹配
+                    # choice_result = fuzzy_match(final_result, choices_list)
+                    # if choice_result[1] > 80:
+                    #     print(f"\n模糊匹配结果: {choice_result[0]}")
+                    # else:
+                    #     print("无模糊匹配结果")
+                else:
+                    print("\n没有检测到有效语音")
+
 def main(args=None):
     # move_node = threading.Thread(target=nodeBuilder, args=(MoveControlPublisher,))
     # move_node.start()
     # camera_node = threading.Thread(target=nodeBuilder, args=(CameraImagePublisher,))
     # camera_node.start()
+    # global stream
+    # stream = p.open(format=pyaudio.paInt16,
+    #             channels=1,
+    #             rate=stream_sample_rate,
+    #             input=True,
+    #             frames_per_buffer=stream_chunk_size)
+    # vosk_node = threading.Thread(target=voskWeak, args=())
+    # vosk_node.start()
     app.run(host=RASP_HOST, port=RASP_PORT)
 
 if __name__ == '__main__':
